@@ -7,7 +7,9 @@ Version=4.2
 Sub Class_Globals
 	Dim App As AWTRIX
 	
-	Dim followers As String ="-"
+	Dim followers As String = "-"
+	Dim lastShowedFollowers As Int = 0
+	Dim actualFollowers As Int = 0
 End Sub
 
 ' Config your App
@@ -83,6 +85,11 @@ Sub App_evalJobResponse(Resp As JobResponse)
 						parser.Initialize(Resp.ResponseString)
 						Dim root As Map = parser.NextObject
 						followers = root.Get("followed_by_count")
+						actualFollowers = root.Get("followed_by_count").As(Int)
+						If actualFollowers <> 0 And lastShowedFollowers = 0 Then
+							'is the first time
+							lastShowedFollowers = root.Get("followed_by_count").As(Int)
+						End If
 					Catch
 						Log("Error in: "& App.Name & CRLF & LastException)
 						Log("API response: "& CRLF & Resp.ResponseString)
@@ -98,6 +105,22 @@ End Sub
 
 'is called every tick, generates the commandlist (drawingroutines) and send it to awtrix
 Sub App_genFrame
-	App.genText(followers,True,1,Null,True)
-	App.drawBMP(0,0,App.getIcon(58),8,8)
+	Dim followersDiff As Int = actualFollowers - lastShowedFollowers
+	If followersDiff <> 0 And (DateTime.Now < App.startedAt + (App.duration * 1000 / 4)) Then
+		Dim symbol As String = "-"
+		If followersDiff > 0 Then
+			symbol = "+"
+		End If
+			
+		App.genText("" & symbol & followersDiff, True, 1, Null, True)
+		App.drawBMP(0, 0, App.getIcon(58), 8, 8)
+	Else
+		App.genText(followers, True, 1, Null, True)
+		App.drawBMP(0, 0, App.getIcon(58), 8, 8)
+	End If
+	
+End Sub
+
+Sub App_Exited
+	lastShowedFollowers = actualFollowers
 End Sub
