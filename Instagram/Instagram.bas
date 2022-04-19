@@ -107,7 +107,7 @@ End Sub
 Sub App_genFrame
 	Dim followersDiff As Int = actualFollowers - lastShowedFollowers
 	If followersDiff <> 0 And (DateTime.Now < App.startedAt + (App.duration * 1000 / 4)) Then
-		Dim symbol As String = "-"
+		Dim symbol As String = ""
 		If followersDiff > 0 Then
 			symbol = "+"
 		End If
